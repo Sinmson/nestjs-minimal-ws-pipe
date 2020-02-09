@@ -12,10 +12,18 @@ export class ChatGateway {
     this.logger.debug("constructor...");
   }
 
-  @UsePipes(EnhanceWebsocketRequestPipe)
+  // does not work
+  @UsePipes(EnhanceWebsocketRequestPipe) // <- comment this out and function will get called
   @SubscribeMessage('message')
-  handleMessage(@ConnectedSocket() client: any, @MessageBody() payload: any) {
-    this.logger.debug("handleMessage | payload: " + payload);
+  handleMessage_willNeverGetCalled(@ConnectedSocket() client: any, @MessageBody() payload: any) {
+    this.logger.debug("handleMessage_willNeverGetCalled | payload: " + payload);
+    client.emit("message", payload);
+  }
+
+  // works
+  @SubscribeMessage('message') 
+  handleMessage(@ConnectedSocket() client: any, @MessageBody(EnhanceWebsocketRequestPipe) payload: any) { 
+    this.logger.debug("handleMessage | payload: " + payload); // '-> using the pipe here does the trick
     client.emit("message", payload);
   }
 }
